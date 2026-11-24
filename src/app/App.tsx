@@ -51,7 +51,7 @@ export default function App() {
           <hemisphereLight args={['#e5d8c7', '#403831', 0.9]}/>
           <directionalLight position={[3, 9, 5]} color="#ffe1bd" intensity={1.15}/>
           <pointLight position={[0, 7.5, 0]} color="#ffd6a6" intensity={24} distance={20} decay={2}/>
-          <MuseumModel url={`${import.meta.env.BASE_URL}models/hoitruong.glb`} position={[-6.5, 0, 8.7]} boxes={[
+          <MuseumModel url={`${import.meta.env.BASE_URL}models/hoitruong.glb?v=glass2`} position={[-6.5, 0, 8.7]} boxes={[
             { center: [6.5, -0.08, -8.7], halfExtents: [7.6, 0.12, 15] },
             { center: [-1.15, 4.8, -8.7], halfExtents: [0.15, 4.8, 15] },
             { center: [14.15, 4.8, -8.7], halfExtents: [0.15, 4.8, 15] },
