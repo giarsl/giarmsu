@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CapsuleCollider, RigidBody, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier'
 import type { Group } from 'three'
@@ -26,7 +26,7 @@ function isSecondFloorDeck(x: number, z: number) {
   return x >= -7.4 && x <= 7.4 && z >= -8.75 && z <= -2.75
 }
 
-export default function Player() {
+export default function Player({ touchKeys }: { touchKeys: RefObject<Map<number, string>> }) {
   const { rapier } = useRapier()
   const { camera, gl } = useThree()
   const body = useRef<RapierRigidBody>(null)
@@ -38,13 +38,36 @@ export default function Player() {
 
   useEffect(() => {
     const canvas = gl.domElement
-    function onMove(event: MouseEvent) {
-      if (document.pointerLockElement !== canvas) return
+    let touch: { id: number; x: number; y: number } | undefined
+    function rotate(dx: number, dy: number) {
       const state = look.current
-      state.yaw -= event.movementX * visitor.mouseSensitivity
+      state.yaw -= dx * visitor.mouseSensitivity
       state.pitch = Math.max(-visitor.pitchLimit, Math.min(visitor.pitchLimit,
-        state.pitch - event.movementY * visitor.mouseSensitivity))
+        state.pitch - dy * visitor.mouseSensitivity))
     }
+    function onMove(event: MouseEvent) {
+      if (document.pointerLockElement === canvas) rotate(event.movementX, event.movementY)
+    }
+    function startLook(event: PointerEvent) {
+      if (event.pointerType !== 'touch' || touch) return
+      canvas.setPointerCapture(event.pointerId)
+      touch = { id: event.pointerId, x: event.clientX, y: event.clientY }
+    }
+    function moveLook(event: PointerEvent) {
+      if (touch?.id !== event.pointerId) return
+      rotate(event.clientX - touch.x, event.clientY - touch.y)
+      touch.x = event.clientX
+      touch.y = event.clientY
+    }
+    function endLook(event: PointerEvent) {
+      if (touch?.id === event.pointerId) touch = undefined
+    }
+    const touchEvents = [
+      ['pointerdown', startLook],
+      ['pointermove', moveLook],
+      ['lostpointercapture', endLook],
+    ] as const
+    for (const [name, handler] of touchEvents) canvas.addEventListener(name, handler)
     function onKeyDown(event: KeyboardEvent) {
       if (document.pointerLockElement !== canvas || !navigationKeys.has(event.code)) return
       event.preventDefault()
@@ -53,7 +76,11 @@ export default function Player() {
     function onKeyUp(event: KeyboardEvent) {
       input.current.delete(event.code)
     }
-    function clearInput() { input.current.clear() }
+    function clearInput() {
+      input.current.clear()
+      touchKeys.current.clear()
+      touch = undefined
+    }
 
     document.addEventListener('mousemove', onMove)
     window.addEventListener('keydown', onKeyDown)
@@ -62,6 +89,7 @@ export default function Player() {
     document.addEventListener('pointerlockchange', clearInput)
     document.addEventListener('visibilitychange', clearInput)
     return () => {
+      for (const [name, handler] of touchEvents) canvas.removeEventListener(name, handler)
       document.removeEventListener('mousemove', onMove)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
@@ -70,14 +98,15 @@ export default function Player() {
       document.removeEventListener('visibilitychange', clearInput)
       clearInput()
     }
-  }, [gl])
+  }, [gl, touchKeys])
 
   useBeforePhysicsStep((world) => {
     if (!body.current) return
     const position = body.current.translation()
     const keys = input.current
-    const side = Number(keys.has('KeyD')) - Number(keys.has('KeyA'))
-    const forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'))
+    const held = new Set([...keys, ...touchKeys.current.values()])
+    const side = Number(held.has('KeyD')) - Number(held.has('KeyA'))
+    const forward = Number(held.has('KeyW')) - Number(held.has('KeyS'))
     const speed = keys.has('ShiftLeft') || keys.has('ShiftRight') ? visitor.briskSpeed : visitor.walkingSpeed
     const scale = speed / Math.max(1, Math.hypot(side, forward))
     const { yaw } = look.current
