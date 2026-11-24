@@ -48,9 +48,9 @@ export default function App() {
       gl={{antialias:true}} onClick={enter} fallback={<p>This walkthrough requires WebGL 2.</p>}>
       <Suspense fallback={null}>
         <Physics timeStep={1/60}>
-          <hemisphereLight args={['#e5d8c7', '#403831', 0.9]}/>
-          <directionalLight position={[3, 9, 5]} color="#ffe1bd" intensity={1.15}/>
-          <pointLight position={[0, 7.5, 0]} color="#ffd6a6" intensity={24} distance={20} decay={2}/>
+          <hemisphereLight args={['#f0f1f4', '#3e3e42', 0.9]}/>
+          <directionalLight position={[3, 9, 5]} color="#fff8ef" intensity={1.15}/>
+          <pointLight position={[0, 7.5, 0]} color="#fff2e2" intensity={24} distance={20} decay={2}/>
           <MuseumModel url={`${import.meta.env.BASE_URL}models/hoitruong.glb?v=glass2`} position={[-6.5, 0, 8.7]} boxes={[
             { center: [6.5, -0.08, -8.7], halfExtents: [7.6, 0.12, 15] },
             { center: [-1.15, 4.8, -8.7], halfExtents: [0.15, 4.8, 15] },

@@ -9,9 +9,6 @@ const navigationKeys = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'Sh
 function stairFloorHeight(x: number, z: number): number | null {
   // The Blender treads are visual geometry; a height profile keeps the capsule
   // supported continuously instead of colliding with every vertical riser.
-  if (Math.abs(x) <= 5.6 && z <= 8.82 && z >= 5.18) {
-    return ((8.82 - z) / 3.64) * 0.32
-  }
   for (const stairX of [-6.5, 6.5]) {
     if (Math.abs(x - stairX) > 0.72) continue
     if (z <= 6.7 && z >= 1.9) return ((6.7 - z) / 4.8) * 2.4
@@ -22,8 +19,41 @@ function stairFloorHeight(x: number, z: number): number | null {
   return null
 }
 
+function reachableStairHeight(x: number, z: number, currentFloor: number) {
+  const height = stairFloorHeight(x, z)
+  // The lower rear aisle overlaps the upper landing in plan. A step can only
+  // connect to a stair surface near the visitor's current foot height.
+  return height !== null && Math.abs(height - currentFloor) <= 0.22 ? height : null
+}
+
+function stageFloorHeight(x: number, z: number) {
+  // Stage coordinates come from the GLB tread tops after applying the model offset.
+  const distanceFromCenter = Math.abs(x + 0.025)
+  if (distanceFromCenter > 4.625 || z > 8.32) return 0
+  const curvedEdge = 0.00465 * distanceFromCenter ** 2
+  const rise = (edge: number) => Math.max(0, Math.min(1, (z - edge + 0.08) / 0.16)) * 0.16
+  const platform = rise(6.45 + curvedEdge)
+  if (distanceFromCenter > 3.9) return platform * 3
+  return rise(5.81 + curvedEdge) + rise(6.13 + curvedEdge) + platform
+}
+
 function isSecondFloorDeck(x: number, z: number) {
   return x >= -7.4 && x <= 7.4 && z >= -8.75 && z <= -2.75
+}
+
+function seatingFloorHeight(x: number, z: number, upstairs: boolean) {
+  // These ranges cover the GLB seating tiers and their rear landings in world coordinates.
+  if (x < -5.6 || x > 5.55 || z < -8.7) return upstairs ? 4.8 : 0
+  const front = upstairs ? -4.95 : 3.22
+  const rowDepth = upstairs ? 0.95 : 0.85
+  const rows = upstairs ? 3 : 10
+  const depth = front - z
+  const transition = 0.16
+  // Ease the rise around each riser, and keep the camera level between rows.
+  const progress = Math.max(0, (depth + transition / 2) / rowDepth)
+  const completed = Math.floor(progress)
+  const rise = Math.min(rows, completed + Math.min(1, (progress - completed) * rowDepth / transition))
+  return (upstairs ? 4.8 : 0) + rise * 0.15
 }
 
 export default function Player({ touchKeys }: { touchKeys: RefObject<Map<number, string>> }) {
@@ -120,11 +150,17 @@ export default function Player({ touchKeys }: { touchKeys: RefObject<Map<number,
     velocity.x += dx * change
     velocity.z += dz * change
     const nextX = Math.max(-7.15, Math.min(7.15, position.x + velocity.x * world.timestep))
-    const nextZ = Math.max(-9, Math.min(14, position.z + velocity.z * world.timestep))
-    const stairHeight = stairFloorHeight(nextX, nextZ)
-    if (stairHeight !== null && stairHeight >= 4.65) onSecondFloor.current = true
-    if (stairHeight !== null && stairHeight <= 0.1 && nextZ > 6.4) onSecondFloor.current = false
-    const floor = stairHeight ?? (onSecondFloor.current && isSecondFloorDeck(nextX, nextZ) ? 4.8 : 0)
+    const nextZ = Math.max(-8.7, Math.min(14, position.z + velocity.z * world.timestep))
+    const currentFloor = position.y - bodyCenter - 0.002
+    const stairHeight = reachableStairHeight(nextX, nextZ, currentFloor)
+    const overDeck = isSecondFloorDeck(nextX, nextZ)
+    if (stairHeight !== null) onSecondFloor.current = stairHeight >= 4.65
+    else if (!overDeck) onSecondFloor.current = false
+    const upstairs = onSecondFloor.current && overDeck
+    const floor = stairHeight ?? Math.max(
+      seatingFloorHeight(nextX, nextZ, upstairs),
+      stageFloorHeight(nextX, nextZ),
+    )
     body.current.setNextKinematicTranslation({x: nextX, y: bodyCenter + floor + 0.002, z: nextZ})
   })
 
