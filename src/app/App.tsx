@@ -62,6 +62,7 @@ export default function App() {
         </Physics>
       </Suspense>
     </Canvas>
+    {!locked && <a className="supper-vr-link" href="?view=supper180">Bữa Tiệc Ly · VR180</a>}
     {touchStarted && <div className="touch-controls" aria-label="Điều khiển di chuyển">
       {([
         ['KeyW', '↑', 'Tiến'],

@@ -17,3 +17,20 @@ canvas,.touch-controls{touch-action:none}
 .touch-controls .KeyW{grid-column:2}
 .touch-controls .KeyA{grid-column:1}
 .touch-controls small{grid-column:1/-1;text-shadow:0 1px 4px #000}
+
+.supper-vr{background:#000}
+.supper-vr-view{position:absolute;inset:0}
+.supper-vr-view canvas{cursor:grab}
+.supper-vr-view canvas:active{cursor:grabbing}
+.supper-vr-header,.supper-vr-controls{position:absolute;left:16px;right:16px;text-align:center;pointer-events:none}
+.supper-vr-header{top:16px}
+.supper-vr-header h1{margin:10px 0;font:400 clamp(20px,4vw,32px) Georgia,serif;text-shadow:0 1px 8px #000}
+.supper-vr-header a,.supper-vr-link{display:inline-block;padding:10px 12px;border:1px solid #d8cdb780;background:#171512dc;border-radius:5px;color:inherit;text-decoration:none;pointer-events:auto}
+.supper-vr-link{position:absolute;top:16px;right:16px}
+.supper-vr-controls{bottom:max(20px,env(safe-area-inset-bottom))}
+.supper-vr-controls.has-headset{bottom:84px}
+.supper-vr-controls small,.supper-vr-status{text-shadow:0 1px 5px #000}
+.supper-vr-status{position:absolute;top:45%;width:100%;text-align:center;pointer-events:none}
+.supper-vr-zoom{display:flex;justify-content:center;gap:8px;margin-bottom:8px;pointer-events:auto;width:max-content;margin-inline:auto}
+.supper-vr-zoom button{width:44px;height:44px;border:1px solid #d8cdb780;border-radius:5px;background:#171512dc;color:inherit;font-size:24px;cursor:pointer}
+.supper-vr-zoom button:disabled{opacity:.5;cursor:default}
