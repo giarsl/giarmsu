@@ -34,3 +34,12 @@ canvas,.touch-controls{touch-action:none}
 .supper-vr-zoom{display:flex;justify-content:center;gap:8px;margin-bottom:8px;pointer-events:auto;width:max-content;margin-inline:auto}
 .supper-vr-zoom button{width:44px;height:44px;border:1px solid #d8cdb780;border-radius:5px;background:#171512dc;color:inherit;font-size:24px;cursor:pointer}
 .supper-vr-zoom button:disabled{opacity:.5;cursor:default}
+
+.supper-vr-header a+a{margin-left:8px}
+.supper-photos .supper-vr-header{z-index:1}
+.supper-photo-frame{position:absolute;inset:110px 0 100px;overflow:auto}
+.supper-photo-frame img{display:block;width:100%;height:100%;object-fit:contain;margin:auto}
+.supper-photo-frame.zoomed img{width:max(190%,900px);height:auto;max-width:none}
+.supper-photo-controls{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:12px;right:12px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.supper-photo-controls button{min-height:44px;padding:0 10px;border:1px solid #d8cdb780;background:#171512;color:inherit;border-radius:5px;cursor:pointer}
+.supper-photo-controls button[aria-pressed=true]{background:#705b3e}

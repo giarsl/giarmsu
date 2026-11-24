@@ -181,6 +181,7 @@ export default function SupperVR() {
     <div className="supper-vr-view" ref={container} />
     <header className="supper-vr-header">
       <a href={import.meta.env.BASE_URL}>← Hội trường</a>
+      <a href="?view=supper-photos">Ảnh chi tiết</a>
       <h1>Bữa Tiệc Ly · VR180</h1>
     </header>
     {status && <p className="supper-vr-status" role="status">{status}</p>}
